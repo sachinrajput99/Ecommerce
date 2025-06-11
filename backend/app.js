@@ -10,6 +10,7 @@ const {
 
 const userRouter = require("./routes/userRouters");
 const productRouter = require("./routes/productRoutes");
+const AppError = require("./utils/appError");
 
 require("dotenv").config();
 
@@ -26,10 +27,10 @@ if (process.env.NODE_ENV == "development") {
 }
 app.use(express.json()); //req.body k and r data dalega
 
-app.use((req, res, next) => {
-  console.log("hello from middleware");
-  next();
-});
+// app.use((req, res, next) => {
+//   console.log("hello from middleware");
+//   next();
+// });
 
 // Routers
 app.use("/api/v1/products", productRouter);
@@ -39,19 +40,29 @@ app.use("/api/v1/products", productRouter);
 //   console.log(`server is running on port ${PORT}`);
 // });
 
-app.use((req, res, next) => {
+// Error on Undefined Routes
+app.all("*", (req, res, next) => {
   // res.status(404).json({
   //   status: "fail",
   //   message: `can't find ${req.originalUrl} on this server`,
   // });
 
-  const err = `can't find ${req.originalUrl} on this server`;
+  const err = new Error(`Can't find ${req.originalUrl} on this server!`);
   err.statusCode = 404;
   err.status = "fail";
+  // next();
 
-  next(err);
+  const errObject = new AppError(
+    `can't find ${req.originalUrl} on this server`,
+    404
+  );
+  console.log(errObject);
+  
+  next(errObject);
 });
-// global error middle ware
+
+// is route ka kaam h error k a response bhjna
+// global error middle ware   next k and kch bi dalenge woh error bnke k liye yha aayega
 app.use((err, req, res, next) => {
   err.statusCode = err.statusCode || 500;
   err.status = err.status || 404;
