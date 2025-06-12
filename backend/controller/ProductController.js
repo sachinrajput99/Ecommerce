@@ -1,6 +1,7 @@
 const qs = require("qs");
 const ProductModel = require("../model/ProductModel");
 const APIFeatures = require("../utils/apifeatures");
+const catchAsync = require("../utils/catchAsync");
 
 exports.aliasTopProducts = (req, res, next) => {
   req.query.page = 1;
@@ -9,24 +10,27 @@ exports.aliasTopProducts = (req, res, next) => {
   next();
 };
 
+//
+// const catchAsync=(fn)=>{
+//   // catch block sends the error to the global error handling app.use(error,req,res,next) middleware if there is any error in fn(req,res,next) which is coming as a parameter in catchAsync
+
+//   // return a new function which is actually trigged as soon as our route is hit from frontend / post man
+//   return (req,res,next)=> { fn(req,res,next).catch(err=>next (err))}
+// }
+
 // product handles
-exports.createProduct = async (req, res) => {
-  try {
-    console.log(req.body);
+exports.createProduct = catchAsync(async (req, res) => {
+  console.log(req.body);
 
-    const Product1 = await ProductModel.create(req.body);
+  const Product1 = await ProductModel.create(req.body);
 
-    res.status(201).json({
-      status: "success",
-      data: {
-        tour: Product1,
-      },
-    });
-  } catch (err) {
-    console.log(`error in create product ${err}`);
-    res.status(400).json({ status: "Failed", message: "Invalid data " });
-  }
-};
+  res.status(201).json({
+    status: "success",
+    data: {
+      tour: Product1,
+    },
+  });
+});
 
 // exports.getAllProducts = async (req, res) => {
 //   // const params = req.params.id * 1;
@@ -57,35 +61,26 @@ exports.createProduct = async (req, res) => {
 //   }
 // };
 
-exports.getAllProducts = async (req, res) => {
-  try {
-    // Use qs.parse to correctly structure nested query params
-    const parsedQuery = qs.parse(req.query);
+exports.getAllProducts = catchAsync(async (req, res) => {
+  // Use qs.parse to correctly structure nested query params
+  const parsedQuery = qs.parse(req.query);
 
-    // EXECUTE QUERY
-    const features = new APIFeatures(ProductModel.find(), parsedQuery)
-      .filter()
-      .sort()
-      .limitFields()
-      .paginate();
+  // EXECUTE QUERY
+  const features = new APIFeatures(ProductModel.find(), parsedQuery)
+    .filter()
+    .sort()
+    .limitFields()
+    .paginate();
 
-    //execution query
-    const product = await features.query;
+  //execution query
+  const product = await features.query;
 
-    res.status(200).json({
-      status: "success",
-      result: product.length,
-      data: { product },
-    });
-  } catch (error) {
-    // console.log(error);
-
-    res.status(400).json({
-      status: "failed",
-      message: error.message,
-    });
-  }
-};
+  res.status(200).json({
+    status: "success",
+    result: product.length,
+    data: { product },
+  });
+});
 
 exports.getProduct = async (req, res) => {
   try {
@@ -108,27 +103,21 @@ exports.getProduct = async (req, res) => {
   }
 };
 
-exports.updateProduct = async (req, res) => {
-  try {
-    const params = req.params.id;
+exports.updateProduct = catchAsync(async (req, res) => {
+  const params = req.params.id;
 
-    console.log(req.params);
-    const product = await ProductModel.findByIdAndUpdate(params, req.body, {
-      new: true,
-      runValidators: true,
-    });
-    res.status(200).json({
-      status: "success",
-      data: {
-        product,
-      },
-    });
-  } catch (error) {
-    res.status(400).json({
-      message: error,
-    });
-  }
-};
+  console.log(req.params);
+  const product = await ProductModel.findByIdAndUpdate(params, req.body, {
+    new: true,
+    runValidators: true,
+  });
+  res.status(200).json({
+    status: "success",
+    data: {
+      product,
+    },
+  });
+});
 
 exports.deleteProduct = async (req, res) => {
   try {

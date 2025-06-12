@@ -27,11 +27,6 @@ if (process.env.NODE_ENV == "development") {
 }
 app.use(express.json()); //req.body k and r data dalega
 
-// app.use((req, res, next) => {
-//   console.log("hello from middleware");
-//   next();
-// });
-
 // Routers
 app.use("/api/v1/products", productRouter);
 // app.use("/api/v1/users", userRouter);
@@ -57,7 +52,7 @@ app.all("*", (req, res, next) => {
     404
   );
   console.log(errObject);
-  
+
   next(errObject);
 });
 
