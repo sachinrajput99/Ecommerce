@@ -1,5 +1,6 @@
 const express = require("express");
 const morgan = require("morgan");
+const globalErrorHandler = require("./controller/errorController");
 const {
   getUser,
   getAllUsers,
@@ -29,7 +30,7 @@ app.use(express.json()); //req.body k and r data dalega
 
 // Routers
 app.use("/api/v1/products", productRouter);
-// app.use("/api/v1/users", userRouter);
+app.use("/api/v1/users", userRouter);
 
 // app.listen(process.env.PORT, () => {
 //   console.log(`server is running on port ${PORT}`);
@@ -57,15 +58,17 @@ app.all("*", (req, res, next) => {
 });
 
 // is route ka kaam h error k a response bhjna
-// global error middle ware   next k and kch bi dalenge woh error bnke k liye yha aayega
-app.use((err, req, res, next) => {
-  err.statusCode = err.statusCode || 500;
-  err.status = err.status || 404;
+// global error middle ware   -next k andr kch bi dalenge woh error bnke k liye yha aayega
+// app.use((err, req, res, next) => {
+//   err.statusCode = err.statusCode || 500;
+//   err.status = err.status || 404;
 
-  res.status(err.statusCode).json({
-    status: err.status,
-    message: err.message,
-  });
-});
+//   res.status(err.statusCode).json({
+//     status: err.status,
+//     message: err.message,
+//   });
+// });
+
+app.use(globalErrorHandler);
 
 module.exports = app;

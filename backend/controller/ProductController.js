@@ -22,7 +22,11 @@ exports.aliasTopProducts = (req, res, next) => {
 exports.createProduct = catchAsync(async (req, res) => {
   console.log(req.body);
 
-  const Product1 = await ProductModel.create(req.body);
+  const product = await ProductModel.create(req.body);
+
+  if (!product) {
+    return next(new AppError("No product found for that ID", 404));
+  }
 
   res.status(201).json({
     status: "success",
@@ -65,6 +69,8 @@ exports.getAllProducts = catchAsync(async (req, res) => {
   // Use qs.parse to correctly structure nested query params
   const parsedQuery = qs.parse(req.query);
 
+  
+
   // EXECUTE QUERY
   const features = new APIFeatures(ProductModel.find(), parsedQuery)
     .filter()
@@ -74,6 +80,8 @@ exports.getAllProducts = catchAsync(async (req, res) => {
 
   //execution query
   const product = await features.query;
+
+  // no need to send error 404 if we do not found product 
 
   res.status(200).json({
     status: "success",
@@ -89,6 +97,9 @@ exports.getProduct = async (req, res) => {
 
     const product = await ProductModel.findById(params);
     // console.log(product);
+    if (!product) {
+      return next(new AppError("No product found for that ID", 404));
+    }
 
     res.status(200).json({
       status: "success",
@@ -111,6 +122,10 @@ exports.updateProduct = catchAsync(async (req, res) => {
     new: true,
     runValidators: true,
   });
+
+  if (!product) {
+    return next(new AppError("No product found for that ID", 404));
+  }
   res.status(200).json({
     status: "success",
     data: {

@@ -1,39 +1,33 @@
 const express = require("express");
+const {
+  getAllUsers,
+  createUser,
+  updateUser,
+  getUser,
+  deleteUser,
+} = require("../controller/userController");
+const authController = require("../controller/authController");
 const userRouter = express.Router();
 
+userRouter.route("/signup").post(authController.signUp);
+userRouter.route("/login").post(authController.protect, authController.login);
 
-
-// handlers 
-const getAllUsers = (req, res) => {
-  res.send("GET all users route");
-};
-
-const createUser = (req, res) => {
-  res.send("POST create user route");
-};
-
-const getUser = (req, res) => {
-  res.send(`GET user route with ID: ${req.params.id}`);
-};
-
-const updateUser = (req, res) => {
-  res.send(`PATCH update user route with ID: ${req.params.id}`);
-};
-
-const deleteUser = (req, res) => {
-  res.send(`DELETE user route with ID: ${req.params.id}`);
-};
+userRouter.route("/forgotPassword").post(authController.forgotPassword);
+userRouter.route("/resetPassword").post(authController.resetPassword);
 
 // Users routes
-userRouter.route("/api/v1/users").get(getAllUsers).post(createUser);
+userRouter.route("/").get(getAllUsers).post(createUser);
 
 userRouter
-  .route("/api/v1/users/:id")
+  .route("/:id")
   .get(getUser)
   .patch(updateUser)
-  .delete(deleteUser);
+  .delete(
+    authController.protect,
+    authController.restrictTo("admin", "lead-guide"),
+    deleteUser
+  );
 
+//   handlers
 
-//   handlers 
-
-  module.exports=userRouter
+module.exports = userRouter;
