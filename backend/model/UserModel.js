@@ -41,6 +41,11 @@ const userSchema = new mongoose.Schema({
     enum: ["user", "user,guide", "lead-guide", "admin"],
     default: "user",
   },
+  active: {
+    type: Boolean,
+    default: true,
+    select: false, //hide from api response
+  },
   passwordChangedAt: Date,
 });
 
@@ -50,6 +55,11 @@ userSchema.pre("save", async function (next) {
   this.password = await bcrypt.hash(this.password, 12);
 
   this.confirmPassword = undefined; //not saved in db
+  next();
+});
+
+userSchema.pre(/^find/, function (next) {
+  this.find({ active: { $ne: false } }); // exclude inactive users
   next();
 });
 
@@ -79,7 +89,7 @@ userSchema.methods.createPasswordResetToken = function () {
   // raw reset token
   const resetToken = crypto.randomBytes(32).toString("hex");
 
-  // hexed reset token
+  // store hexed reset token in db
   this.passwordResetToken = crypto
     .createHash("sha256")
     .update(resetToken)
@@ -91,6 +101,14 @@ userSchema.methods.createPasswordResetToken = function () {
   this.PasswordResetExpire = Date.now() + 10 * 60 * 1000;
   return resetToken;
 };
+
+userSchema.pre("save", function (next) {
+  // agr password nhi change hua h or  document naya h to next () wrna passwordChangedAt ki value set krdo
+  if (!this.isModified("password") || this.isNew) return next();
+
+  this.passwordChangedAt = Date.now() - 1000; // 1 sec peeche set karte hain for JWT timing mismatch
+  next();
+});
 
 // creating  model
 const UserModel = mongoose.model("User", userSchema);
